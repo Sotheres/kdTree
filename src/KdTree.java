@@ -1,6 +1,7 @@
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.StdDraw;
 
 public class KdTree {
 
@@ -12,8 +13,9 @@ public class KdTree {
         private RectHV rect;
         private Node lb, rt;
 
-        public Node(Point2D p) {
+        public Node(Point2D p, RectHV rect) {
             this.p = p;
+            this.rect = rect;
         }
     }
 
@@ -29,26 +31,31 @@ public class KdTree {
     }
 
     public void insert(Point2D p) {
-        root = insert(root, p, true);
+        RectHV unitSquare = new RectHV(0, 0, 1, 1);
+        root = insert(root, p, true, unitSquare);
         size++;
     }
 
-    private Node insert(Node cur, Point2D p, boolean vertical) {
+    private Node insert(Node cur, Point2D p, boolean vertical, RectHV rect) {
         if (cur == null) {
-            return new Node(p);
+            return new Node(p, rect);
         }
 
         if (vertical) {
             if (cur.p.x() > p.x()) {
-                cur.lb = insert(cur.lb, p, !vertical);
+                RectHV innerRect = new RectHV(0, 0, cur.p.x(), 1);
+                cur.lb = insert(cur.lb, p, !vertical, innerRect);
             } else {
-                cur.rt = insert(cur.rt, p, !vertical);
+                RectHV innerRect = new RectHV(cur.p.x(), 0, 1, 1);
+                cur.rt = insert(cur.rt, p, !vertical, innerRect);
             }
         } else {
             if (cur.p.y() > p.y()) {
-                cur.lb = insert(cur.lb, p, !vertical);
+                RectHV innerRect = new RectHV(0, 0, 1, cur.p.y());
+                cur.lb = insert(cur.lb, p, !vertical, innerRect);
             } else {
-                cur.rt = insert(cur.rt, p, !vertical);
+                RectHV innerRect = new RectHV(0, cur.p.y(), 1, 1);
+                cur.rt = insert(cur.rt, p, !vertical, innerRect);
             }
         }
 
