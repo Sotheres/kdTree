@@ -128,19 +128,35 @@ public class KdTree {
     }
 
     private boolean isIntersect(RectHV a, RectHV b) {
-        if (a.xmax() >= b.xmin()
-                && (a.ymax() >= b.ymin() || a.ymin() <= b.ymax()
-                    || (a.ymax() >= b.ymax() && a.ymin() <= b.ymin()))) {
+        double e = 0.000001;
+        if (a.xmax() > b.xmin()
+                && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
+                    || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
             return true;
         }
-        if (a.xmax() >= b.xmax() && a.xmin() <= b.xmin()
-                && (a.ymax() >= b.ymin() || a.ymin() <= b.ymax()
-                    || (a.ymax() >= b.ymax() && a.ymin() <= b.ymin()))) {
+        if (a.xmax() - b.xmin() < e
+                && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
+                || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
             return true;
         }
-        return a.xmin() <= b.xmax()
-                && (a.ymax() >= b.ymin() || a.ymin() <= b.ymax()
-                || (a.ymax() >= b.ymax() && a.ymin() <= b.ymin()));
+        if (a.xmax() > b.xmax() && a.xmin() < b.xmin()
+                && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
+                    || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
+            return true;
+        }
+        if (a.xmax() - b.xmax() < e && a.xmin() - b.xmin() < e
+                && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
+                || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
+            return true;
+        }
+        if (a.xmin() < b.xmax()
+                && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
+                || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
+            return true;
+        }
+        return a.xmin() - b.xmax() < e
+                && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
+                || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e));
     }
 
 //    public Point2D nearest(Point2D p) {
