@@ -31,7 +31,12 @@ public class KdTree {
     }
 
     public void insert(Point2D p) {
-        RectHV unitSquare = new RectHV(0, 0, 1, 1);
+        RectHV unitSquare;
+        if (root == null) {
+            unitSquare = new RectHV(0, 0, 1, 1);
+        } else {
+            unitSquare = null;
+        }
         root = insert(root, p, true, unitSquare);
         size++;
     }
@@ -43,18 +48,18 @@ public class KdTree {
 
         if (vertical) {
             if (cur.p.x() > p.x()) {
-                RectHV innerRect = new RectHV(0, 0, cur.p.x(), 1);
+                RectHV innerRect = new RectHV(0, cur.rect.ymin(), cur.p.x(), cur.rect.ymax());
                 cur.lb = insert(cur.lb, p, !vertical, innerRect);
             } else {
-                RectHV innerRect = new RectHV(cur.p.x(), 0, 1, 1);
+                RectHV innerRect = new RectHV(cur.p.x(), cur.rect.ymin(), 1, cur.rect.ymax());
                 cur.rt = insert(cur.rt, p, !vertical, innerRect);
             }
         } else {
             if (cur.p.y() > p.y()) {
-                RectHV innerRect = new RectHV(0, 0, 1, cur.p.y());
+                RectHV innerRect = new RectHV(cur.rect.xmin(), 0, cur.rect.xmax(), cur.p.y());
                 cur.lb = insert(cur.lb, p, !vertical, innerRect);
             } else {
-                RectHV innerRect = new RectHV(0, cur.p.y(), 1, 1);
+                RectHV innerRect = new RectHV(cur.rect.xmin(), cur.p.y(), cur.rect.xmax(), 1);
                 cur.rt = insert(cur.rt, p, !vertical, innerRect);
             }
         }
@@ -90,13 +95,54 @@ public class KdTree {
     }
 
     public void draw() {
+        boolean vertical = true;
+        visit(root, vertical);
+    }
+
+    private void visit(Node x, boolean vertical) {
+        if (x == null) {
+            return;
+        }
+
+        visit(x.lb, !vertical);
+        draw(x, vertical);
+        visit(x.rt, !vertical);
+    }
+
+    private void draw(Node x, boolean vertical) {
+        if (vertical) {
+            StdDraw.setPenColor(StdDraw.RED);
+            StdDraw.line(x.p.x(), x.rect.ymin(), x.p.x(), x.rect.ymax());
+        } else {
+            StdDraw.setPenColor(StdDraw.BLUE);
+            StdDraw.line(x.rect.xmin(), x.p.y(), x.rect.xmax(), x.p.y());
+        }
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenRadius(0.02);
+        StdDraw.point(x.p.x(), x.p.y());
+        StdDraw.setPenRadius();
+    }
+
+    public Iterable<Point2D> range(RectHV rect) {
 
     }
 
-//    public Iterable<Point2D> range(RectHV rect) {
-//
-//    }
-//
+    private boolean isIntersect(RectHV a, RectHV b) {
+        if (a.xmax() >= b.xmin()
+                && (a.ymax() >= b.ymin() || a.ymin() <= b.ymax()
+                    || (a.ymax() >= b.ymax() && a.ymin() <= b.ymin()))) {
+            return true;
+        }
+        if (a.xmax() >= b.xmax() && a.xmin() <= b.xmin()
+                && (a.ymax() >= b.ymin() || a.ymin() <= b.ymax()
+                    || (a.ymax() >= b.ymax() && a.ymin() <= b.ymin()))) {
+            return true;
+        }
+        return a.xmin() <= b.xmax()
+                && (a.ymax() >= b.ymin() || a.ymin() <= b.ymax()
+                || (a.ymax() >= b.ymax() && a.ymin() <= b.ymin()));
+    }
+
 //    public Point2D nearest(Point2D p) {
 //
 //    }
@@ -105,13 +151,13 @@ public class KdTree {
         KdTree tree = new KdTree();
         In in = new In(args[0]);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             double x = in.readDouble();
             double y = in.readDouble();
             Point2D p = new Point2D(x, y);
             tree.insert(p);
         }
 
-        System.out.println(tree.contains(new Point2D(0.372, 0.497)));
+        tree.draw();
     }
 }
