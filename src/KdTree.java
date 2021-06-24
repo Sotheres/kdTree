@@ -2,6 +2,7 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
+import java.util.LinkedList;
 
 public class KdTree {
 
@@ -124,11 +125,31 @@ public class KdTree {
     }
 
     public Iterable<Point2D> range(RectHV rect) {
-
+        LinkedList<Point2D> points = new LinkedList<>();
+        if (isIntersects(root.rect, rect)) {
+            range(root, rect, points);
+        }
+        return points;
     }
 
-    private boolean isIntersect(RectHV a, RectHV b) {
-        double e = 0.000001;
+    private void range(Node cur, RectHV rect, LinkedList<Point2D> points) {
+        if (cur == null) {
+            return;
+        }
+
+        if (cur.lb != null && isIntersects(cur.lb.rect, rect)) {
+            range(cur.lb, rect, points);
+        }
+        if (isContains(rect, cur.p)) {
+            points.add(cur.p);
+        }
+        if (cur.rt != null && isIntersects(cur.rt.rect, rect)) {
+            range(cur.rt, rect, points);
+        }
+    }
+
+    private boolean isIntersects(RectHV a, RectHV b) {
+        double e = 0.00001;
         if (a.xmax() > b.xmin()
                 && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
                     || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
@@ -136,7 +157,7 @@ public class KdTree {
         }
         if (a.xmax() - b.xmin() < e
                 && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
-                || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
+                    || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
             return true;
         }
         if (a.xmax() > b.xmax() && a.xmin() < b.xmin()
@@ -146,17 +167,34 @@ public class KdTree {
         }
         if (a.xmax() - b.xmax() < e && a.xmin() - b.xmin() < e
                 && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
-                || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
+                    || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
             return true;
         }
         if (a.xmin() < b.xmax()
                 && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
-                || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
+                    || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
             return true;
         }
         return a.xmin() - b.xmax() < e
                 && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
-                || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e));
+                    || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e));
+    }
+
+    private boolean isContains(RectHV rect, Point2D p) {
+        double e = 0.00001;
+        if (p.x() > rect.xmin() && p.x() < rect.xmax()
+            && p.y() > rect.ymin() && p.y() < rect.ymax()) {
+            return true;
+        }
+        return false;
+//        return p.x() - rect.xmin() < e && p.y() > rect.ymin() && p.y() < rect.ymax()
+//         || p.x() - rect.xmax() < e && p.x() - rect.xmax() > 0 && p.y() > rect.ymin() && p.y() < rect.ymax()
+//         || p.y() - rect.ymin() < e && p.y() - rect.ymin() < 0 && p.x() > rect.xmin() && p.x() < rect.xmax()
+//         || p.y() - rect.ymax() < e && p.y() - rect.ymax() > 0 && p.x() > rect.xmin() && p.x() < rect.xmax()
+//         || p.x() - rect.xmin() < e && p.x() - rect.xmin() > 0 && p.y() - rect.ymin() < e && p.y() - rect.ymin() > 0
+//         || p.x() - rect.xmin() < e && p.x() - rect.xmin() > 0 && p.y() - rect.ymax() < e && p.y() - rect.ymax() > 0
+//         || p.x() - rect.xmax() < e && p.x() - rect.xmax() > 0 && p.y() - rect.ymin() < e && p.y() - rect.ymin() > 0
+//         || p.x() - rect.xmax() < e && p.x() - rect.xmax() > 0 && p.y() - rect.ymax() < e && p.y() - rect.ymax() > 0;
     }
 
 //    public Point2D nearest(Point2D p) {
@@ -175,5 +213,10 @@ public class KdTree {
         }
 
         tree.draw();
+
+        RectHV rect = new RectHV(0, 0, 0.2, 0.3);
+        for(Point2D p : tree.range(rect)) {
+            System.out.println(p);
+        }
     }
 }
