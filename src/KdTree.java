@@ -155,9 +155,9 @@ public class KdTree {
                     || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
             return true;
         }
-        if (a.xmax() - b.xmin() < e
-                && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
-                    || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
+        if (Math.abs(a.xmax() - b.xmin()) < e
+                && (Math.abs(a.ymax() - b.ymin()) < e || Math.abs(a.ymin() - b.ymax()) < e
+                    || (Math.abs(a.ymax() - b.ymax()) < e && Math.abs(a.ymin() - b.ymin()) < e))) {
             return true;
         }
         if (a.xmax() > b.xmax() && a.xmin() < b.xmin()
@@ -165,9 +165,9 @@ public class KdTree {
                     || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
             return true;
         }
-        if (a.xmax() - b.xmax() < e && a.xmin() - b.xmin() < e
-                && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
-                    || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e))) {
+        if (Math.abs(a.xmax() - b.xmax()) < e && Math.abs(a.xmin() - b.xmin()) < e
+                && (Math.abs(a.ymax() - b.ymin()) < e || Math.abs(a.ymin() - b.ymax()) < e
+                    || (Math.abs(a.ymax() - b.ymax()) < e && Math.abs(a.ymin() - b.ymin()) < e))) {
             return true;
         }
         if (a.xmin() < b.xmax()
@@ -175,9 +175,9 @@ public class KdTree {
                     || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
             return true;
         }
-        return a.xmin() - b.xmax() < e
-                && (a.ymax() - b.ymin() < e || a.ymin() - b.ymax() < e
-                    || (a.ymax() - b.ymax() < e && a.ymin() - b.ymin() < e));
+        return Math.abs(a.xmin() - b.xmax()) < e
+                && (Math.abs(a.ymax() - b.ymin()) < e || Math.abs(a.ymin() - b.ymax()) < e
+                    || (Math.abs(a.ymax() - b.ymax()) < e && Math.abs(a.ymin() - b.ymin()) < e));
     }
 
     private boolean isContains(RectHV rect, Point2D p) {
@@ -186,20 +186,38 @@ public class KdTree {
             && p.y() > rect.ymin() && p.y() < rect.ymax()) {
             return true;
         }
-        return false;
-//        return p.x() - rect.xmin() < e && p.y() > rect.ymin() && p.y() < rect.ymax()
-//         || p.x() - rect.xmax() < e && p.x() - rect.xmax() > 0 && p.y() > rect.ymin() && p.y() < rect.ymax()
-//         || p.y() - rect.ymin() < e && p.y() - rect.ymin() < 0 && p.x() > rect.xmin() && p.x() < rect.xmax()
-//         || p.y() - rect.ymax() < e && p.y() - rect.ymax() > 0 && p.x() > rect.xmin() && p.x() < rect.xmax()
-//         || p.x() - rect.xmin() < e && p.x() - rect.xmin() > 0 && p.y() - rect.ymin() < e && p.y() - rect.ymin() > 0
-//         || p.x() - rect.xmin() < e && p.x() - rect.xmin() > 0 && p.y() - rect.ymax() < e && p.y() - rect.ymax() > 0
-//         || p.x() - rect.xmax() < e && p.x() - rect.xmax() > 0 && p.y() - rect.ymin() < e && p.y() - rect.ymin() > 0
-//         || p.x() - rect.xmax() < e && p.x() - rect.xmax() > 0 && p.y() - rect.ymax() < e && p.y() - rect.ymax() > 0;
+        return Math.abs(p.x() - rect.xmin()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
+            || Math.abs(p.x() - rect.xmax()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
+            || Math.abs(p.y() - rect.ymin()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
+            || Math.abs(p.y() - rect.ymax()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
+            || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymin()) < e
+            || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymax()) < e
+            || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymin()) < e
+            || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymax()) < e;
     }
 
-//    public Point2D nearest(Point2D p) {
-//
-//    }
+    public Point2D nearest(Point2D p) {
+        Point2D nearest = new Point2D(root.p.x(), root.p.y());
+        nearest(root, p, nearest);
+        return nearest;
+    }
+
+    private void nearest(Node cur, Point2D query, Point2D nearest) {
+        if (cur == null) {
+            return;
+        }
+
+        if (cur.p.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+            nearest = cur.p;
+        }
+        if (sqDistToRect(query, cur.lb.rect) < nearest.distanceSquaredTo(query)) {
+
+        }
+    }
+
+    private double sqDistToRect(Point2D query, RectHV rect) {
+
+    }
 
     public static void main(String[] args) {
         KdTree tree = new KdTree();

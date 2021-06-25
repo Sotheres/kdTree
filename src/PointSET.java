@@ -44,9 +44,19 @@ public class PointSET {
         }
 
         LinkedList<Point2D> pointsList = new LinkedList<>();
+        double e = 0.00001;
         for (Point2D p : set) {
-            if (p.x() >= rect.xmin() && p.x() <= rect.xmax()
-             && p.y() >= rect.ymin() && p.y() <= rect.ymax()) {
+            if (p.x() > rect.xmin() && p.x() < rect.xmax()
+             && p.y() > rect.ymin() && p.y() < rect.ymax()) {
+                pointsList.add(p);
+            } else if (Math.abs(p.x() - rect.xmin()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
+             || Math.abs(p.x() - rect.xmax()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
+             || Math.abs(p.y() - rect.ymin()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
+             || Math.abs(p.y() - rect.ymax()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
+             || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymin()) < e
+             || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymax()) < e
+             || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymin()) < e
+             || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymax()) < e) {
                 pointsList.add(p);
             }
         }
