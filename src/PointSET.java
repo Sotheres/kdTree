@@ -6,7 +6,7 @@ import java.util.TreeSet;
 
 public class PointSET {
 
-    private TreeSet<Point2D> set;
+    private final TreeSet<Point2D> set;
 
     public PointSET() {
         set = new TreeSet<>();
@@ -46,17 +46,10 @@ public class PointSET {
         LinkedList<Point2D> pointsList = new LinkedList<>();
         double e = 0.00001;
         for (Point2D p : set) {
-            if (p.x() > rect.xmin() && p.x() < rect.xmax()
-             && p.y() > rect.ymin() && p.y() < rect.ymax()) {
-                pointsList.add(p);
-            } else if (Math.abs(p.x() - rect.xmin()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
-             || Math.abs(p.x() - rect.xmax()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
-             || Math.abs(p.y() - rect.ymin()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
-             || Math.abs(p.y() - rect.ymax()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
-             || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymin()) < e
-             || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymax()) < e
-             || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymin()) < e
-             || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymax()) < e) {
+            if ((p.x() > rect.xmin() || Math.abs(p.x() - rect.xmin()) < e)
+             && (p.x() < rect.xmax() || Math.abs(p.x() - rect.xmax()) < e)
+             && (p.y() > rect.ymin() || Math.abs(p.y() - rect.ymin()) < e)
+             && (p.y() < rect.ymax() || Math.abs(p.y() - rect.ymax()) < e)) {
                 pointsList.add(p);
             }
         }
@@ -66,13 +59,13 @@ public class PointSET {
 
     public Point2D nearest(Point2D p) {
         validate(p);
-        if (set.size() == 0) {
+        if (isEmpty()) {
             return null;
         }
 
         Point2D nearest = set.first();
         for (Point2D curr : set) {
-            if (curr.distanceTo(p) < nearest.distanceTo(p)) {
+            if (curr.distanceSquaredTo(p) < nearest.distanceSquaredTo(p)) {
                 nearest = curr;
             }
         }

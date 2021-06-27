@@ -10,11 +10,11 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/algs4.jar!/" />
+          <root url="jar://E:/Загрузки/algs4.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$USER_HOME$/Downloads/algs4.jar!/" />
+          <root url="jar://E:/Загрузки/algs4.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

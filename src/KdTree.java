@@ -10,8 +10,8 @@ public class KdTree {
     private int size;
 
     private static class Node {
-        private Point2D p;
-        private RectHV rect;
+        private final Point2D p;
+        private final RectHV rect;
         private Node lb, rt;
 
         public Node(Point2D p, RectHV rect) {
@@ -32,36 +32,47 @@ public class KdTree {
     }
 
     public void insert(Point2D p) {
-        RectHV unitSquare;
-        if (root == null) {
-            unitSquare = new RectHV(0, 0, 1, 1);
-        } else {
-            unitSquare = null;
-        }
-        root = insert(root, p, true, unitSquare);
-        size++;
+        validate(p);
+        root = insert(root, p, true, null);
     }
 
     private Node insert(Node cur, Point2D p, boolean vertical, RectHV rect) {
+        if (root == null) {
+            size++;
+            return new Node(p, new RectHV(0, 0, 1, 1));
+        }
         if (cur == null) {
+            size++;
             return new Node(p, rect);
+        }
+
+        if (p.equals(cur.p)) {
+            return cur;
         }
 
         if (vertical) {
             if (cur.p.x() > p.x()) {
-                RectHV innerRect = new RectHV(0, cur.rect.ymin(), cur.p.x(), cur.rect.ymax());
-                cur.lb = insert(cur.lb, p, !vertical, innerRect);
+                if (cur.lb == null) {
+                    rect = new RectHV(0, cur.rect.ymin(), cur.p.x(), cur.rect.ymax());
+                }
+                cur.lb = insert(cur.lb, p, !vertical, rect);
             } else {
-                RectHV innerRect = new RectHV(cur.p.x(), cur.rect.ymin(), 1, cur.rect.ymax());
-                cur.rt = insert(cur.rt, p, !vertical, innerRect);
+                if (cur.rt == null) {
+                    rect = new RectHV(cur.p.x(), cur.rect.ymin(), 1, cur.rect.ymax());
+                }
+                cur.rt = insert(cur.rt, p, !vertical, rect);
             }
         } else {
             if (cur.p.y() > p.y()) {
-                RectHV innerRect = new RectHV(cur.rect.xmin(), 0, cur.rect.xmax(), cur.p.y());
-                cur.lb = insert(cur.lb, p, !vertical, innerRect);
+                if (cur.lb == null) {
+                    rect = new RectHV(cur.rect.xmin(), 0, cur.rect.xmax(), cur.p.y());
+                }
+                cur.lb = insert(cur.lb, p, !vertical, rect);
             } else {
-                RectHV innerRect = new RectHV(cur.rect.xmin(), cur.p.y(), cur.rect.xmax(), 1);
-                cur.rt = insert(cur.rt, p, !vertical, innerRect);
+                if (cur.rt == null) {
+                    rect = new RectHV(cur.rect.xmin(), cur.p.y(), cur.rect.xmax(), 1);
+                }
+                cur.rt = insert(cur.rt, p, !vertical, rect);
             }
         }
 
@@ -69,6 +80,7 @@ public class KdTree {
     }
 
     public boolean contains(Point2D p) {
+        validate(p);
         return contains(root, p, true);
     }
 
@@ -97,20 +109,16 @@ public class KdTree {
 
     public void draw() {
         boolean vertical = true;
-        visit(root, vertical);
+        draw(root, vertical);
     }
 
-    private void visit(Node x, boolean vertical) {
+    private void draw(Node x, boolean vertical) {
         if (x == null) {
             return;
         }
 
-        visit(x.lb, !vertical);
-        draw(x, vertical);
-        visit(x.rt, !vertical);
-    }
+        draw(x.lb, !vertical);
 
-    private void draw(Node x, boolean vertical) {
         if (vertical) {
             StdDraw.setPenColor(StdDraw.RED);
             StdDraw.line(x.p.x(), x.rect.ymin(), x.p.x(), x.rect.ymax());
@@ -122,13 +130,18 @@ public class KdTree {
         StdDraw.setPenRadius(0.02);
         StdDraw.point(x.p.x(), x.p.y());
         StdDraw.setPenRadius();
+
+        draw(x.rt, !vertical);
     }
 
     public Iterable<Point2D> range(RectHV rect) {
-        LinkedList<Point2D> points = new LinkedList<>();
-        if (isIntersects(root.rect, rect)) {
-            range(root, rect, points);
+        if (rect == null) {
+            throw new IllegalArgumentException("Rectangle is null.");
         }
+
+        LinkedList<Point2D> points = new LinkedList<>();
+        range(root, rect, points);
+
         return points;
     }
 
@@ -137,93 +150,91 @@ public class KdTree {
             return;
         }
 
-        if (cur.lb != null && isIntersects(cur.lb.rect, rect)) {
+        if (cur.lb != null && rect.intersects(cur.lb.rect)) {
             range(cur.lb, rect, points);
         }
-        if (isContains(rect, cur.p)) {
+        if (rect.contains(cur.p)) {
             points.add(cur.p);
         }
-        if (cur.rt != null && isIntersects(cur.rt.rect, rect)) {
+        if (cur.rt != null && rect.intersects(cur.rt.rect)) {
             range(cur.rt, rect, points);
         }
     }
 
-    private boolean isIntersects(RectHV a, RectHV b) {
-        double e = 0.00001;
-        if (a.xmax() > b.xmin()
-                && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
-                    || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
-            return true;
-        }
-        if (Math.abs(a.xmax() - b.xmin()) < e
-                && (Math.abs(a.ymax() - b.ymin()) < e || Math.abs(a.ymin() - b.ymax()) < e
-                    || (Math.abs(a.ymax() - b.ymax()) < e && Math.abs(a.ymin() - b.ymin()) < e))) {
-            return true;
-        }
-        if (a.xmax() > b.xmax() && a.xmin() < b.xmin()
-                && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
-                    || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
-            return true;
-        }
-        if (Math.abs(a.xmax() - b.xmax()) < e && Math.abs(a.xmin() - b.xmin()) < e
-                && (Math.abs(a.ymax() - b.ymin()) < e || Math.abs(a.ymin() - b.ymax()) < e
-                    || (Math.abs(a.ymax() - b.ymax()) < e && Math.abs(a.ymin() - b.ymin()) < e))) {
-            return true;
-        }
-        if (a.xmin() < b.xmax()
-                && (a.ymax() > b.ymin() || a.ymin() < b.ymax()
-                    || (a.ymax() > b.ymax() && a.ymin() < b.ymin()))) {
-            return true;
-        }
-        return Math.abs(a.xmin() - b.xmax()) < e
-                && (Math.abs(a.ymax() - b.ymin()) < e || Math.abs(a.ymin() - b.ymax()) < e
-                    || (Math.abs(a.ymax() - b.ymax()) < e && Math.abs(a.ymin() - b.ymin()) < e));
-    }
-
-    private boolean isContains(RectHV rect, Point2D p) {
-        double e = 0.00001;
-        if (p.x() > rect.xmin() && p.x() < rect.xmax()
-            && p.y() > rect.ymin() && p.y() < rect.ymax()) {
-            return true;
-        }
-        return Math.abs(p.x() - rect.xmin()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
-            || Math.abs(p.x() - rect.xmax()) < e && p.y() > rect.ymin() && p.y() < rect.ymax()
-            || Math.abs(p.y() - rect.ymin()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
-            || Math.abs(p.y() - rect.ymax()) < e && p.x() > rect.xmin() && p.x() < rect.xmax()
-            || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymin()) < e
-            || Math.abs(p.x() - rect.xmin()) < e && Math.abs(p.y() - rect.ymax()) < e
-            || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymin()) < e
-            || Math.abs(p.x() - rect.xmax()) < e && Math.abs(p.y() - rect.ymax()) < e;
-    }
-
     public Point2D nearest(Point2D p) {
-        Point2D nearest = new Point2D(root.p.x(), root.p.y());
-        nearest(root, p, nearest);
-        return nearest;
+        validate(p);
+        if (root == null) {
+            return null;
+        }
+        boolean vertical = true;
+
+        return nearest(root, p, root.p, vertical);
     }
 
-    private void nearest(Node cur, Point2D query, Point2D nearest) {
+    private Point2D nearest(Node cur, Point2D query, Point2D nearest, boolean vertical) {
         if (cur == null) {
-            return;
+            return nearest;
         }
 
         if (cur.p.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
             nearest = cur.p;
         }
-        if (sqDistToRect(query, cur.lb.rect) < nearest.distanceSquaredTo(query)) {
-
+        if (vertical) {
+            if (query.x() < cur.p.x()) {
+                if (cur.lb != null
+                        && cur.lb.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.lb, query, nearest, vertical);
+                }
+                if (cur.rt != null
+                        && cur.rt.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.rt, query, nearest, vertical);
+                }
+            } else {
+                if (cur.rt != null
+                        && cur.rt.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.rt, query, nearest, vertical);
+                }
+                if (cur.lb != null
+                        && cur.lb.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.lb, query, nearest, vertical);
+                }
+            }
+        } else {
+            if (query.y() < cur.p.y()) {
+                if (cur.lb != null
+                        && cur.lb.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.lb, query, nearest, vertical);
+                }
+                if (cur.rt != null
+                        && cur.rt.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.rt, query, nearest, vertical);
+                }
+            } else {
+                if (cur.rt != null
+                        && cur.rt.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.rt, query, nearest, vertical);
+                }
+                if (cur.lb != null
+                        && cur.lb.rect.distanceSquaredTo(query) < nearest.distanceSquaredTo(query)) {
+                    nearest = nearest(cur.lb, query, nearest, vertical);
+                }
+            }
         }
+
+        return nearest;
     }
 
-    private double sqDistToRect(Point2D query, RectHV rect) {
-
+    private void validate(Point2D p) {
+        if (p == null) {
+            throw new IllegalArgumentException("Point is null.");
+        }
     }
 
     public static void main(String[] args) {
         KdTree tree = new KdTree();
         In in = new In(args[0]);
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             double x = in.readDouble();
             double y = in.readDouble();
             Point2D p = new Point2D(x, y);
@@ -231,10 +242,5 @@ public class KdTree {
         }
 
         tree.draw();
-
-        RectHV rect = new RectHV(0, 0, 0.2, 0.3);
-        for(Point2D p : tree.range(rect)) {
-            System.out.println(p);
-        }
     }
 }
